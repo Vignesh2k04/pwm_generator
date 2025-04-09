@@ -1,0 +1,57 @@
+module pwm (
+    input clk,          // 50MHz clock input
+    input rst,          // Reset signal
+    input [3:0] inc,    // 4 switches for increasing duty cycle (inc[0] = 20%, inc[1] = 40%, inc[2] = 60%, inc[3] = 80%)
+    output reg pwm_out  // PWM output signal
+);
+
+    reg [3:0] counter;  // 4-bit counter for PWM timing (0 to 9)
+    reg [3:0] duty_cycle; // 4-bit duty cycle register (0 to 9, representing 0% to 90%)
+
+    // Duty cycle control logic
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            duty_cycle <= 0; // Reset duty cycle to 0%
+        end else begin
+            // Set duty cycle based on active switches (highest priority)
+            if (inc[3]) begin
+                duty_cycle <= 8; // 80% duty cycle
+            end else if (inc[2]) begin
+                duty_cycle <= 6; // 60% duty cycle
+            end else if (inc[1]) begin
+                duty_cycle <= 4; // 40% duty cycle
+            end else if (inc[0]) begin
+                duty_cycle <= 2; // 20% duty cycle
+            end else begin
+                duty_cycle <= 0; // 0% duty cycle (no switches active)
+            end
+        end
+    end
+
+    // Counter logic for PWM signal generation
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            counter <= 0;
+        end else begin
+            if (counter == 9) begin
+                counter <= 0; // Reset counter after reaching 9
+            end else begin
+                counter <= counter + 1; // Increment counter
+            end
+        end
+    end
+
+    // PWM signal generation logic
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            pwm_out <= 0;
+        end else begin
+            if (counter < duty_cycle) begin
+                pwm_out <= 1; // Set PWM output HIGH
+            end else begin
+                pwm_out <= 0; // Set PWM output LOW
+            end
+        end
+    end
+
+endmodule

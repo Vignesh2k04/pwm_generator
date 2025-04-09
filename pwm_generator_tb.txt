@@ -1,0 +1,56 @@
+module pwm_tb;
+
+    // Inputs
+    reg clk;
+    reg rst;
+    reg [3:0] inc; // 4 switches for duty cycle control
+
+    // Outputs
+    wire pwm_out;
+
+    // Instantiate the PWM module
+    pwm uut (
+        .clk(clk),
+        .rst(rst),
+        .inc(inc),
+        .pwm_out(pwm_out)
+    );
+
+    // Clock generation (50MHz clock)
+    initial begin
+        clk = 0;
+        forever #10 clk = ~clk; // Toggle clock every 10ns (50MHz)
+    end
+
+    // Test sequence
+    initial begin
+        // Initialize inputs
+        rst = 1;        // Assert reset
+        inc = 4'b0000;  // All switches OFF
+
+        // Release reset after 100ns
+        #100;
+        rst = 0;
+
+        // Test duty cycle changes
+        #100;
+        inc = 4'b0001; // inc[0] = 20%
+        #500;
+
+        inc = 4'b0010; // inc[1] = 40%
+        #500;
+
+        inc = 4'b0100; // inc[2] = 60%
+        #500;
+
+        inc = 4'b1000; // inc[3] = 80%
+        #500;
+
+        inc = 4'b0000; // All switches OFF (0%)
+        #500;
+
+        // End simulation
+        $stop;
+    end
+
+endmodule
